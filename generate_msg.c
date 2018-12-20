@@ -111,6 +111,8 @@ generate_hna(void *p)
 
   if (queue_hna(ifn) && TIMED_OUT(ifn->fwdtimer)) {
     set_buffer_timer(ifn);
+        //生成 HNA消息的节点将 HNA消息放在队列中，当读取到该消息时，判断该消息是否过期，如未过期，则读取消息内容。
+
   }
 }
 
