@@ -60,8 +60,9 @@ struct olsr_common {
   uint8_t ttl;
   uint8_t hops;
   uint16_t seqno;
-};
-
+};//olsr _common是OLSR协议基本数据包。其中包含以下几部分：type，消息类型；vtime，表示接收后多长时间节点可以确保数据包中的消息有效；size，
+消息大小； orig，发端地址； ttl，跳数，消息在传递过程中最大跳数，每转发一次，ttl减1；hops，此消息在传递过程中经历的跳数；seqno，消息的序列号，
+这是唯一不变的，以确保消息不回被重发。
 /* serialized IPv4 OLSR header */
 
 struct olsr_header_v4 {
@@ -94,21 +95,28 @@ struct lq_hello_neighbor {
   union olsr_ip_addr addr;
   struct lq_hello_neighbor *next;
   uint32_t linkquality[0];
-};
+};//结构体 lq _ hello _ neighbor，是邻居节点集 HELLO消息的头部。
+link _type，连接类型（UNSPEC  _ LINK）；neigh  _type邻居类型（SYM   _ NEIGH，
+NOT _ NEIGH）；addr，地址；next，将要把   HELLO消息传递给的下一个邻居
+  
+结点；linkquality   0  ，链路的质量。
 
 struct lq_hello_message {
   struct olsr_common comm;
   olsr_reltime htime;
   uint8_t will;
   struct lq_hello_neighbor *neigh;
-};
+};//结构体lq _ hello _ message，是消息数据包的头部。htime，HELLO
+消息发射间隔； will，指定节点的意愿进行，有意愿的WILL  _ NEVER的节点被
+选为MPR的任意节点；neigh，消息传递的下一个节点。
 
 /* serialized LQ_HELLO */
 struct lq_hello_info_header {
   uint8_t link_code;
   uint8_t reserved;
   uint16_t size;
-};
+};//结构体lq _ hello _info _ header与结构体lq _ hello _ header共同组
+成了 HELLO消息数据包的头部
 
 struct lq_hello_header {
   uint16_t reserved;
