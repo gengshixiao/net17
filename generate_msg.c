@@ -74,7 +74,12 @@ generate_hello(void *p)
   if (queue_hello(&hellopacket, ifn))
     net_output(ifn);
 
-  olsr_free_hello_packet(&hellopacket);
+  olsr_free_hello_packet(&hellopacket);// generate _ helloº¯ÊýÓÃÓÚ²úÉúÒ»¸öÏûÏ¢£¬ÔÙµ÷ÓÃ queue_  helloº¯Êý
+//½«Éú³É´øÓÐ²ÎÊýhellopacketÄÚÈÝµÄHELLO°ü£¬ifnÊÇ·¢ËÍÏûÏ¢µÄ½Ó¿Ú£¬Èç¹û´´½¨³É¹¦£¬
+//ÔòÍ¨¹ý net _outputº¯Êý½«´Ë°üÍ¨¹ý¸ø¶¨½Ó¿Ú ifn·¢ËÍ³öÈ¥£¬×îºóµ÷ÓÃº¯Êý
+//ÊÍ·ÅÏûÏ¢¡£
+
+
 
 }
 
@@ -91,7 +96,10 @@ generate_tc(void *p)
   }
 
   olsr_free_tc_packet(&tcpacket);
-}
+}//MIDÏûÏ¢Í¨¹ýolsr  _build  _tc _ packet?  ?º¯ÊýÉú³ÉÖ®ºó·ÅÔÚMID¶Ó
+//ÁÐÖÐ¡£µ±Ê±¼ä´ÁÆÚÂúµÄÊ±ºò£¬µ÷ÓÃset _buffer  _timer?   ?ÉèÖÃ¶¨Ê±Æ÷¡£×îºó´Ó¸ø¶¨
+//½Ó¿ÚifnÊÍ·ÅÏûÏ¢£¬Í¬Ê±µ÷ÓÃolsr  _  free _tc _ packet?  ?ÊÍ·ÅËùÕ¼ÄÚ´æ¡£
+
 
 void
 generate_mid(void *p)
@@ -99,7 +107,10 @@ generate_mid(void *p)
   struct interface *ifn = (struct interface *)p;
 
   if (queue_mid(ifn) && TIMED_OUT(ifn->fwdtimer)) {
-    set_buffer_timer(ifn);
+    set_buffer_timer(ifn);//Éú³ÉMIDÏûÏ¢µÄ½Úµã½«Éú³ÉµÄMIDÏûÏ¢°ü·Å½øÒ»¸ö¶ÓÁÐÖÐ£¬½Ó
+//ÊÕÏûÏ¢µÄ½ÚµãÒÀ´Î¶ÁÈ¡¶ÓÁÐÖÐµÄ MIDÏûÏ¢£¬µ±¶ÁÈ¡µ½Ä³Ò»ÏûÏ¢Ê±£¬Ê×ÏÈÅÐ¶Ï¸Ã
+//ÏûÏ¢ÊÇ·ñ¹ýÆÚ£¬Èô¹ýÆÚ£¬Ôò²»Óè¶ÁÈ¡£¬Ö±½Ó¶ªÆú¸ÃÊý¾Ý°ü¡£
+
   }
 
 }
@@ -111,7 +122,9 @@ generate_hna(void *p)
 
   if (queue_hna(ifn) && TIMED_OUT(ifn->fwdtimer)) {
     set_buffer_timer(ifn);
-        //ç”Ÿæˆ HNAæ¶ˆæ¯çš„èŠ‚ç‚¹å°† HNAæ¶ˆæ¯æ”¾åœ¨é˜Ÿåˆ—ä¸­ï¼Œå½“è¯»å–åˆ°è¯¥æ¶ˆæ¯æ—¶ï¼Œåˆ¤æ–­è¯¥æ¶ˆæ¯æ˜¯å¦è¿‡æœŸï¼Œå¦‚æœªè¿‡æœŸï¼Œåˆ™è¯»å–æ¶ˆæ¯å†…å®¹ã€‚
+        //Éú³É HNAÏûÏ¢µÄ½Úµã½« HNAÏûÏ¢·ÅÔÚ¶ÓÁÐÖÐ£¬µ±¶ÁÈ¡µ½¸ÃÏûÏ¢
+//Ê±£¬ÅÐ¶Ï¸ÃÏûÏ¢ÊÇ·ñ¹ýÆÚ£¬ÈçÎ´¹ýÆÚ£¬Ôò¶ÁÈ¡ÏûÏ¢ÄÚÈÝ¡£
+
 
   }
 }

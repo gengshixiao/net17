@@ -187,7 +187,7 @@ olsr_init_tc(void)
 {
   OLSR_PRINTF(5, "TC: init topo\n");
 
-  avl_init(&tc_tree, avl_comp_default);
+  avl_init(&tc_tree, avl_comp_default);//调用avl _init()初始化一个avl树。
 
   /*
    * Get some cookies for getting stats to ease troubleshooting.
@@ -199,12 +199,16 @@ olsr_init_tc(void)
   olsr_cookie_set_memory_size(tc_edge_mem_cookie, sizeof(struct tc_edge_entry) + active_lq_handler->tc_lq_size);
 
   tc_mem_cookie = olsr_alloc_cookie("tc_entry", OLSR_COOKIE_TYPE_MEMORY);
-  olsr_cookie_set_memory_size(tc_mem_cookie, sizeof(struct tc_entry));
+  olsr_cookie_set_memory_size(tc_mem_cookie, sizeof(struct tc_entry));//对拓扑表集合的初始化，从 cookie中获取相应的值为拓扑表集
+//合的属性赋值；
+
 
   /*
    * Add a TC entry for ourselves.
    */
-  tc_myself = olsr_add_tc_entry(&olsr_cnf->main_addr);
+  tc_myself = olsr_add_tc_entry(&olsr_cnf->main_addr);//调用 olsr _ add _ tc_ entry()配置一个entry，并将其插入到   tc树中，
+//同时会导致一条rt _ path插入到路由表中。
+
 }
 
 void olsr_delete_all_tc_entries(void) {
@@ -275,7 +279,7 @@ olsr_unlock_tc_entry(struct tc_entry *tc)
  * @param entry the TC entry to delete
  *
  */
-void
+void//函数功能：删除一条TC  entry。
 olsr_delete_tc_entry(struct tc_entry *tc)
 {
   struct tc_edge_entry *tc_edge;
@@ -288,11 +292,14 @@ olsr_delete_tc_entry(struct tc_entry *tc)
   /* delete gateway if available */
 #ifdef LINUX_NETLINK_ROUTING
   olsr_delete_gateway_entry(&tc->addr, FORCE_DELETE_GW_ENTRY);
-#endif
+#endif//若宏定义 LINUX _ NETLINK _ ROUTING条件，则删除网关信息。
+//其中网关的删除操作需要对网关协议 (IPv4或  IPv6)、网关信息是否为空以及网
+//关信息保存时间是否为空进行判断；
+
   /*
    * Delete the rt_path for ourselves.
    */
-  olsr_delete_routing_table(&tc->addr, olsr_cnf->maxplen, &tc->addr);
+  olsr_delete_routing_table(&tc->addr, olsr_cnf->maxplen, &tc->addr);//删除本地的路由表中相应的rt _ path；
 
   /* The edgetree and prefix tree must be empty before */
   OLSR_FOR_ALL_TC_EDGE_ENTRIES(tc, tc_edge) {
@@ -309,8 +316,10 @@ olsr_delete_tc_entry(struct tc_entry *tc)
   olsr_stop_timer(tc->validity_timer);
   tc->validity_timer = NULL;
 
-  avl_delete(&tc_tree, &tc->vertex_node);
-  olsr_unlock_tc_entry(tc);
+  avl_delete(&tc_tree, &tc->vertex_node);//停止相应的定时器，将timers参数都设置为空，保证数据和设置
+//的彻底删除；
+
+  olsr_unlock_tc_entry(tc);//从avl树中删除相应的节点，并将该tc   _entry的引用值减1。
 }
 
 /**
@@ -810,17 +819,23 @@ olsr_input_tc(union olsr_message * msg, struct interface * input_if __attribute_
   pkt_get_u8(&curr, &type);
   if ((type != LQ_TC_MESSAGE) && (type != TC_MESSAGE)) {
     return false;
-  }
+  }//当节点接收到TC消息时，只关心其消息类型。当其类型不等于
+//LQ _TC _ MESSAGE或者TC  _ MESSAGE时，直接返回 false，将包丢弃。
+
 
   /*
    * If the sender interface (NB: not originator) of this message
    * is not in the symmetric 1-hop neighborhood of this node, the
    * message MUST be discarded.
-   */
+   *///TC消息接收者在接收到消息时判断发送者接口信息，若发送者
+//并非是对称一跳邻居，那么该包将会被丢弃。
+
   if (check_neighbor_link(from_addr) != SYM_LINK) {
     OLSR_PRINTF(2, "Received TC from NON SYM neighbor %s\n", olsr_ip_to_string(&buf, from_addr));
     return false;
-  }
+  }//一旦接收到TC消息，必须根据消息头的Vtime字段计算"有效
+//时间" 。
+
 
   pkt_get_reltime(&curr, &vtime);
   pkt_get_u16(&curr, &size);
@@ -852,7 +867,9 @@ olsr_input_tc(union olsr_message * msg, struct interface * input_if __attribute_
        */
       if ((tc->msg_seq == msg_seq) || (tc->ignored++ < 32)) {
         return false;
-      }
+      }//如果该消息中的 msg _seq和外部变量  msg _ seq相等且 ignored
+//变量小于32，则代表该消息已经处理过，应该忽视。
+
 
       OLSR_PRINTF(1, "Ignored to much LQTC's for %s, restarting\n", olsr_ip_to_string(&buf, &originator));
 
@@ -881,6 +898,9 @@ olsr_input_tc(union olsr_message * msg, struct interface * input_if __attribute_
   if (!tc) {
     tc = olsr_add_tc_entry(&originator);
   }
+//如果拓扑表中不存在和TC消息中'消息产生这地址'字段相同
+//的条目，则添加新的条目并且保存序列号，之后根据之后获取的TC消息数据包
+//的头部信息更新tc _entry。
 
   /*
    * Update the tc entry.
@@ -922,7 +942,11 @@ olsr_input_tc(union olsr_message * msg, struct interface * input_if __attribute_
    * Set or change the expiration timer accordingly.
    */
   olsr_set_timer(&tc->validity_timer, vtime, OLSR_TC_VTIME_JITTER, OLSR_TIMER_ONESHOT, &olsr_expire_tc_entry, tc,
-                 tc_validity_timer_cookie);
+                 tc_validity_timer_cookie);//调用olsr _calculate  _tc _border()计算borderSet的值，并且重
+//置相关的期满定时器。
+//如果TC消息中的'消息产生者地址'字段是自己的   MPR selector，并且
+//'消息存活时间'大于0，则向周围邻居结点广播该TC消息。
+
 
   if (emptyTC && lower_border == 0xff && upper_border == 0xff) {
     /* handle empty TC with border flags 0xff */

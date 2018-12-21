@@ -53,7 +53,7 @@
 
 struct neighbor_entry neighbortable[HASHSIZE];
 
-void
+void//函数功能：初始化邻居表。
 olsr_init_neighbor_table(void)
 {
   int i;
@@ -62,23 +62,27 @@ olsr_init_neighbor_table(void)
     neighbortable[i].next = &neighbortable[i];
     neighbortable[i].prev = &neighbortable[i];
   }
-}
+}//将每一个邻居表neighbortable  i  初始化为指向自身的仅有一个节点
+//的链表。
+
 
 /**
  * Unlink, delete and free a nbr2_list entry.
  */
-static void
+static void//函数功能：删除释放一个两跳邻居节点记录。
 olsr_del_nbr2_list(struct neighbor_2_list_entry *nbr2_list)
 {
   struct neighbor_entry *nbr;
-  struct neighbor_2_entry *nbr2;
+  struct neighbor_2_entry *nbr2;//获取两跳邻居节点记录中 nbr2 _list中的邻居节点结构体   nbr和两
+//跳邻居节点结构体nbr2；
+
 
   nbr = nbr2_list->nbr2_nbr;
   nbr2 = nbr2_list->neighbor_2;
 
   if (nbr2->neighbor_2_pointer < 1) {
     DEQUEUE_ELEM(nbr2);
-    free(nbr2);
+    free(nbr2);//释放两跳邻居节点结构体nbr2的空间；
   }
 
   /*
@@ -88,13 +92,15 @@ olsr_del_nbr2_list(struct neighbor_2_list_entry *nbr2_list)
   nbr2_list->nbr2_list_timer = NULL;
 
   /* Dequeue */
-  DEQUEUE_ELEM(nbr2_list);
+  DEQUEUE_ELEM(nbr2_list);//将两跳邻居节点记录中的计时器置为空；
 
   free(nbr2_list);
 
   /* Set flags to recalculate the MPR set and the routing table */
   changes_neighborhood = true;
-  changes_topology = true;
+  changes_topology = true;//通过将全局变量changes _ neighborhood，changes  _topology置为真，
+//通知网络重新计算MPR集合和路由表。
+
 }
 
 /**
@@ -105,12 +111,14 @@ olsr_del_nbr2_list(struct neighbor_2_list_entry *nbr2_list)
  *
  * @return positive if entry deleted
  */
-int
+int//函数功能：将从两跳邻居节点信息中，根据给定的邻居节点地址删除对应的
+//两跳邻居节点。
+
 olsr_delete_neighbor_2_pointer(struct neighbor_entry *neighbor, struct neighbor_2_entry *neigh2)
 {
   struct neighbor_2_list_entry *nbr2_list;
 
-  nbr2_list = neighbor->neighbor_2_list.next;
+  nbr2_list = neighbor->neighbor_2_list.next;//获取邻居节点的两跳邻居节点信息表；
 
   while (nbr2_list != &neighbor->neighbor_2_list) {
     if (nbr2_list->neighbor_2 == neigh2) {
@@ -119,7 +127,10 @@ olsr_delete_neighbor_2_pointer(struct neighbor_entry *neighbor, struct neighbor_
     }
     nbr2_list = nbr2_list->next;
   }
-  return 0;
+  return 0;//遍历邻居节点的两跳邻居及节点信息表，直到找到信息表中两
+//跳邻居节点与给定的两跳邻居节点相同，则删除该两跳邻居节点并返回1，表示
+//成功删除；否则返回0表示没有删除。
+
 }
 
 /**
@@ -133,10 +144,12 @@ olsr_delete_neighbor_2_pointer(struct neighbor_entry *neighbor, struct neighbor_
  *@return a pointer to the neighbor_2_list_entry struct
  *representing the two hop neighbor if found. NULL if not found.
  */
-struct neighbor_2_list_entry *
+struct neighbor_2_list_entry *//函数功能：查找给定邻居节点，能否通过该节点连接到一个给定的两跳邻居
+//节点地址。
+
 olsr_lookup_my_neighbors(const struct neighbor_entry *neighbor, const union olsr_ip_addr *neighbor_main_address)
 {
-  struct neighbor_2_list_entry *entry;
+  struct neighbor_2_list_entry *entry;//定义返回值entry，用来记录找到的两跳邻居节点信息表结构体。
 
   for (entry = neighbor->neighbor_2_list.next; entry != &neighbor->neighbor_2_list; entry = entry->next) {
 
@@ -144,7 +157,10 @@ olsr_lookup_my_neighbors(const struct neighbor_entry *neighbor, const union olsr
       return entry;
 
   }
-  return NULL;
+  return NULL;//遍历邻居节点的两跳邻居节点信息表，如果找到信息表中存在
+//两跳邻居节点的两跳邻居节点 IP地址匹配给定的两跳邻居节点地址，则返回该
+//两跳邻居节点信息表结构体。否则，返回空指针。
+
 }
 
 /**
@@ -212,19 +228,23 @@ olsr_delete_neighbor_table(const union olsr_ip_addr *neighbor_addr)
  *
  *@return 0 if neighbor already exists 1 if inserted
  */
-struct neighbor_entry *
+struct neighbor_entry *//函数作用：在邻居节点信息表中插入一条邻居节点信息。如果已存在返回0，
+//否则返回1。
+
 olsr_insert_neighbor_table(const union olsr_ip_addr *main_addr)
 {
   uint32_t hash;
   struct neighbor_entry *new_neigh;
 
-  hash = olsr_ip_hashing(main_addr);
+  hash = olsr_ip_hashing(main_addr);//查邻居节点信息表中是否存在要添加的邻居节点信息；
 
   /* Check if entry exists */
 
   for (new_neigh = neighbortable[hash].next; new_neigh != &neighbortable[hash]; new_neigh = new_neigh->next) {
     if (ipequal(&new_neigh->neighbor_main_addr, main_addr))
-      return new_neigh;
+      return new_neigh;//添加邻居节点信息并设置内部的地址，willingness，状态等变量
+//的初始化。
+
   }
 
   //printf("inserting neighbor\n");
@@ -296,7 +316,7 @@ olsr_lookup_neighbor_table_alias(const union olsr_ip_addr *dst)
 
 }
 
-int
+int//函数功能：更新邻居信息表中的状态为参数link。
 update_neighbor_status(struct neighbor_entry *entry, int lnk)
 {
   /*
@@ -317,9 +337,14 @@ update_neighbor_status(struct neighbor_entry *entry, int lnk)
       changes_topology = true;
       if (olsr_cnf->tc_redundancy > 1)
         signal_link_changes(true);
-    }
+    }//如果将连接状态置为SYM  _ LINK时，如果原来是 NOT  _ SYM则
+//通知网络重新进行 MPR选举和路由表更新并删除通过这个邻居节点连接到的两
+//跳邻居节点；
+
     entry->status = SYM;
-  } else {
+  } else {//否则，如果之前状态为SYM  _ LINK则通知网络重新进行MPR选
+//举和路由表更新。
+
     if (entry->status == SYM) {
       changes_neighborhood = true;
       changes_topology = true;

@@ -67,13 +67,15 @@
 struct rt_metric {
   olsr_linkcost cost;
   uint32_t hops;
-};
+};//在路由选择的时候使用的复合矩阵，其中包括两个路由点之间的花
+//销或者跳数。
+
 
 /* a nexthop is a pointer to a gateway router plus an interface */
 struct rt_nexthop {
   union olsr_ip_addr gateway;          /* gateway router */
   int iif_index;                       /* outgoing interface index */
-};
+};//该结构体包含下一跳的网关(IPv4或  IPv6)与接口索引。
 
 /*
  * Every prefix in our RIB needs a route entry that contains
@@ -90,7 +92,12 @@ struct rt_entry {
   struct rt_metric rt_metric;          /* metric of FIB route */
   struct avl_tree rt_path_tree;
   struct list_node rt_change_node;     /* queue for kernel FIB add/chg/del */
-};
+};//每一个 RIB节点都会有一个路由的接口，这个接口很重要，里面包
+//含了最佳路径的下一个网关信息，而且是 rt _ path _tree的根，同样也包含了一
+//个在所有路由信息里的一个最好的路径。rt _ dst包含了该信息的路由地址与前缀
+//长度。 rt _tree _ node包含了 val _ tree的一些信息。该结构体里面也包含了父节
+//点、子节点、左右节点、表示一棵树的信息值。
+
 
 AVLNODE2STRUCT(rt_tree2rt, struct rt_entry, rt_tree_node);
 LISTNODE2STRUCT(changelist2rt, struct rt_entry, rt_change_node);
@@ -114,7 +121,9 @@ struct rt_path {
   struct olsr_ip_prefix rtp_dst;       /* the prefix */
   uint32_t rtp_version;                /* for detection of outdated rt_paths */
   uint8_t rtp_origin;                  /* internal, MID or HNA */
-};
+};//该结构体包含了rt _ path的信息，接收到的rt   _ path会被加入到
+//路由信息表中，然后用于计算best _ path。
+
 
 AVLNODE2STRUCT(rtp_tree2rtp, struct rt_path, rtp_tree_node);
 AVLNODE2STRUCT(rtp_prefix_tree2rtp, struct rt_path, rtp_prefix_tree_node);
@@ -191,7 +200,10 @@ union olsr_kernel_route {
     struct in6_addr rtmsg_gateway;
     uint32_t rtmsg_metric;
   } v6;
-};
+};//核心路由表的结构。核心路由表表项的添加和删除主要受目的地、
+//网关(下一跳)和标志设置的影响。标志位的设置非常重要，决定着传输数据时，
+//添加的路由表项是否发挥作用。
+
 
 extern struct avl_tree routingtree;
 extern unsigned int routingtree_version;
